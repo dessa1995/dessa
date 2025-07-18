@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>귀염뽀짝 강아지 키우기</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Gowun Dodum', sans-serif;
+      background-color: #fff8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-top: 30px;
+      font-size: 2.8rem;
+      color: #ff914d;
+    }
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .active {
+      display: flex !important;
+    }
+    .button {
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 1.1rem;
+      background: #ffcdcd;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background 0.2s;
+    }
+    .button:hover {
+      background: #ffa4a4;
+    }
+    input {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+    #game-wrapper {
+      width: 95%;
+      max-width: 900px;
+      aspect-ratio: 4 / 3;
+      position: relative;
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status-bar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px 15px;
+      border-radius: 15px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      border: 1px solid #ffdad5;
+    }
+    .event-timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 243, 234, 0.95);
+      padding: 10px 15px;
+      border-radius: 15px;
+      font-size: 0.95rem;
+      color: #cc5c00;
+      border: 1px dashed #ffa65e;
+    }
+    .celebrate {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.2rem;
+      background: #fff3cd;
+      color: #d9480f;
+      padding: 15px 25px;
+      border: 2px solid #ffd6a5;
+      border-radius: 20px;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+      z-index: 999;
+      display: none;
+    }
+    .interaction-toggle {
+      margin-top: 20px;
+    }
+    .interaction-panel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .interaction-panel .button {
+      background: #d2f4dc;
+      margin: 5px;
+    }
+    .ending-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    .album {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px;
+    }
+    .album img {
+      width: 100px;
+      height: auto;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+    }
+    #fireworks {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: url('https://media.giphy.com/media/3o6Zthv2oGhyBbfXAI/giphy.gif') center center / cover no-repeat;
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐶 귀염뽀짝 강아지 키우기</h1>
+
+  <div id="start-screen" class="screen active">
+    <button class="button" onclick="goToBreedScreen()">게임 시작</button>
+  </div>
+
+  <div id="breed-screen" class="screen">
+    <p>강아지 품종을 선택하세요:</p>
+    <div>
+      <button class="button" onclick="selectBreed('g')">골든 리트리버</button>
+      <button class="button" onclick="selectBreed('b')">비숑 프리제</button>
+    </div>
+  </div>
+
+  <div id="name-screen" class="screen">
+    <p>강아지 이름을 지어주세요:</p>
+    <input type="text" id="puppy-name" placeholder="예: 뭉치" />
+    <button class="button" onclick="startGame()">게임 시작</button>
+  </div>
+
+  <div id="game-screen" class="screen">
+    <div id="game-wrapper">
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <div id="fireworks"></div>
+      <div class="status-bar" id="statusBar"></div>
+      <div class="event-timer" id="eventTimer">다음 이벤트까지: 5초</div>
+      <div class="celebrate" id="celebrate">🎉 성장했어요! <button onclick="acknowledgeGrowth()" class="button">축하해</button></div>
+    </div>
+
+    <div class="interaction-toggle">
+      <button class="button" onclick="toggleInteractionPanel()">직접 상호작용 🔁</button>
+    </div>
+    <div class="interaction-panel" id="interactionPanel">
+      <button class="button" onclick="directInteraction('쓰다듬기')">쓰다듬기</button>
+      <button class="button" onclick="directInteraction('귀 냄새 맡기')">귀 냄새 맡기</button>
+      <button class="button" onclick="directInteraction('발 냄새 맡기')">발 냄새 맡기</button>
+      <button class="button" onclick="directInteraction('껴안기')">껴안기</button>
+    </div>
+
+    <audio id="bgm" autoplay loop>
+      <source src="https://dessa95.github.io/puppy-game-drive/bgm.mp3" type="audio/mp3" />
+    </audio>
+  </div>
+
+  <div id="ending-screen" class="screen ending-screen">
+    <h2 id="endingText"></h2>
+    <div class="album" id="albumGallery"></div>
+    <button class="button" onclick="location.reload()">다시 시작하기</button>
+  </div>
+<script>
+  let breed = "";
+  let puppyName = "";
+  let age = 0;
+  let mood = 50;
+  let hunger = 50;
+  let album = [];
+  let ageInterval, eventInterval;
+  let eventPaused = false;
+  let nextEventTime = 5;
+  let isGrowing = false;
+
+  const gameCanvas = document.getElementById("gameCanvas");
+  const ctx = gameCanvas.getContext("2d");
+  const statusBar = document.getElementById("statusBar");
+  const eventTimer = document.getElementById("eventTimer");
+  const celebrate = document.getElementById("celebrate");
+  const endingScreen = document.getElementById("ending-screen");
+  const endingText = document.getElementById("endingText");
+  const albumGallery = document.getElementById("albumGallery");
+
+  const puppyImages = {
+    g: {
+      baby: "https://dessa95.github.io/puppy-game-drive/g1.png",
+      teen: "https://dessa95.github.io/puppy-game-drive/g2.png",
+      adult: "https://dessa95.github.io/puppy-game-drive/g3.png",
+      senior: "https://dessa95.github.io/puppy-game-drive/g4.png",
+    },
+    b: {
+      baby: "https://dessa95.github.io/puppy-game-drive/b1.png",
+      teen: "https://dessa95.github.io/puppy-game-drive/b2.png",
+      adult: "https://dessa95.github.io/puppy-game-drive/b3.png",
+      senior: "https://dessa95.github.io/puppy-game-drive/b4.png",
+    },
+  };
+
+  function goToBreedScreen() {
+    document.getElementById("start-screen").classList.remove("active");
+    document.getElementById("breed-screen").classList.add("active");
+  }
+
+  function selectBreed(b) {
+    breed = b;
+    document.getElementById("breed-screen").classList.remove("active");
+    document.getElementById("name-screen").classList.add("active");
+  }
+
+  function startGame() {
+    puppyName = document.getElementById("puppy-name").value || "멍멍이";
+    document.getElementById("name-screen").classList.remove("active");
+    document.getElementById("game-screen").classList.add("active");
+    updateStatus();
+    renderPuppy();
+    startTimers();
+  }
+
+  function startTimers() {
+    ageInterval = setInterval(() => {
+      if (!eventPaused) {
+        age++;
+        updateStatus();
+        renderPuppy();
+        if (age === 2 || age === 6 || age === 10) {
+          pauseEventsForGrowth();
+        }
+        if (age >= 11) {
+          setTimeout(() => {
+            showEnding();
+          }, 60000); // 1분 후
+        }
+      }
+    }, 20000); // 20초마다 나이 증가
+
+    eventInterval = setInterval(() => {
+      if (!eventPaused && !isGrowing) {
+        showRandomEvent();
+      }
+    }, 5000); // 5초마다 이벤트
+  }
+
+  function updateStatus() {
+    let stage = getStage();
+    statusBar.innerHTML = `이름: ${puppyName}<br>나이: ${age}세 (${stage})<br>기분 😊: ${mood}<br>배고픔 🍖: ${hunger}`;
+  }
+
+  function getStage() {
+    if (age < 2) return "신생아기";
+    if (age < 6) return "청소년기";
+    if (age < 10) return "성년기";
+    return "노령기";
+  }
+
+  function renderPuppy() {
+    const stage = getStage();
+    const img = new Image();
+    img.src = stage === "신생아기" ? puppyImages[breed].baby :
+              stage === "청소년기" ? puppyImages[breed].teen :
+              stage === "성년기" ? puppyImages[breed].adult :
+              puppyImages[breed].senior;
+    img.onload = () => {
+      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+      ctx.drawImage(img, 150, 100, 500, 400);
+    };
+    album.push(img.src);
+  }
+
+  function pauseEventsForGrowth() {
+    eventPaused = true;
+    isGrowing = true;
+    celebrate.style.display = "block";
+    document.getElementById("fireworks").style.display = "block";
+  }
+
+  function acknowledgeGrowth() {
+    celebrate.style.display = "none";
+    document.getElementById("fireworks").style.display = "none";
+    isGrowing = false;
+    eventPaused = false;
+  }
+
+  function toggleInteractionPanel() {
+    const panel = document.getElementById("interactionPanel");
+    panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+  }
+
+  function directInteraction(type) {
+    mood = Math.min(mood + 10, 100);
+    hunger = Math.max(hunger - 5, 0);
+    updateStatus();
+    renderPuppy();
+    alert(`${puppyName}에게 ${type} 했더니 기분이 좋아졌어요!`);
+  }
+  function showRandomEvent() {
+    const events = [
+      "강아지가 신나서 방을 뛰어다녀요!",
+      "강아지가 물을 많이 마셨어요.",
+      "강아지가 조용히 누워 있어요.",
+      "산책을 가고 싶어 해요.",
+      "간식을 기대하고 있어요.",
+      "주인을 졸졸 따라다녀요.",
+      "강아지가 꿈을 꾸며 잠꼬대를 해요.",
+      "새로운 장난감을 좋아해요.",
+      "TV 소리에 짖어요.",
+      "햇볕 아래에서 뒹굴어요.",
+      "꼬리를 흔들며 다가와요.",
+      "귀를 당기며 놀자고 해요.",
+      "발을 핥아요.",
+      "간식통을 앞발로 건드려요.",
+      "무언가를 응시하며 집중해요."
+    ];
+    const chosen = events[Math.floor(Math.random() * events.length)];
+    const eventBox = document.createElement("div");
+    eventBox.className = "event-box";
+    eventBox.innerText = chosen;
+    document.body.appendChild(eventBox);
+    mood = Math.min(mood + 5, 100);
+    hunger = Math.max(hunger - 3, 0);
+    updateStatus();
+    renderPuppy();
+    setTimeout(() => {
+      document.body.removeChild(eventBox);
+    }, 3000);
+  }
+
+  function showEnding() {
+    clearInterval(ageInterval);
+    clearInterval(eventInterval);
+    document.getElementById("game-screen").classList.remove("active");
+    document.getElementById("ending-screen").classList.add("active");
+    endingText.innerText = `${puppyName}이가 예쁘고 멋지게 자랐어요!`;
+
+    albumGallery.innerHTML = "";
+    album.forEach(src => {
+      const img = document.createElement("img");
+      img.src = src;
+      img.className = "gallery-item";
+      albumGallery.appendChild(img);
+    });
+  }
+
+  function restartGame() {
+    location.reload();
+  }
+
+  setInterval(() => {
+    if (!eventPaused && !isGrowing) {
+      nextEventTime--;
+      if (nextEventTime <= 0) {
+        nextEventTime = 5;
+      }
+      eventTimer.textContent = `다음 이벤트까지: ${nextEventTime}초`;
+    }
+  }, 1000);
+</script>
+  <style>
+    .event-box {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff2cc;
+      border: 2px solid #ffbd59;
+      padding: 15px 25px;
+      border-radius: 20px;
+      font-size: 1.2rem;
+      color: #b45f06;
+      z-index: 500;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .gallery-item {
+      width: 100px;
+      height: auto;
+      margin: 5px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+
+  <div id="ending-screen" class="screen">
+    <h2 id="endingText"></h2>
+    <div id="albumGallery" style="display:flex; flex-wrap:wrap; justify-content:center; margin:20px;"></div>
+    <button class="button" onclick="restartGame()">다시 시작하기</button>
+  </div>
+
+  <audio id="bgm" autoplay loop>
+    <source src="https://dessa95.github.io/puppy-game-drive/bgm.mp3" type="audio/mpeg" />
+  </audio>
+</body>
+</html>
