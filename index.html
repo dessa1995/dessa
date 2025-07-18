@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>나만의 강아지 키우기 🐶</title>
+  <title>나만의 강아지 키우기 🐾</title>
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     body {
@@ -13,45 +13,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
     }
     h1 {
       margin: 20px;
-      font-size: 2.5rem;
+      font-size: 2.4rem;
       color: #d4a373;
-    }
-    #game-wrapper {
-      width: 95%;
-      max-width: 1000px;
-      aspect-ratio: 4 / 3;
-      position: relative;
-      background: #ffffff;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      border: 10px solid #ffffff;
-    }
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      cursor: pointer;
-    }
-    audio {
-      display: none;
-    }
-    .emotion-icon {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      font-size: 36px;
     }
     .screen {
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
     }
     .active {
       display: flex !important;
@@ -60,45 +32,64 @@
       padding: 12px 24px;
       margin: 10px;
       font-size: 1.1rem;
-      background: #ffcdcd;
+      background: #f9dcc4;
       border: none;
-      border-radius: 15px;
+      border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: background 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .button:hover {
-      background: #ffa4a4;
+      background: #fcd5b5;
     }
-    .info-box {
+    input {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      width: 200px;
+    }
+    #game-wrapper {
+      width: 95%;
+      max-width: 860px;
+      aspect-ratio: 4 / 3;
+      position: relative;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status-bar, .event-timer, .celebrate, .interaction-toggle, .interaction-panel {
       position: absolute;
+      z-index: 10;
+    }
+    .status-bar {
       top: 10px;
       left: 10px;
       background: rgba(255, 255, 255, 0.95);
       padding: 10px 15px;
-      border-radius: 15px;
+      border-radius: 12px;
       font-size: 0.95rem;
-      line-height: 1.4;
-      border: 1px solid #ffdad5;
+      line-height: 1.5;
+      border: 1px solid #f4d6a3;
     }
-    .event-box {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff3cd;
-      color: #865500;
-      padding: 15px;
-      border: 2px dashed #ffd6a5;
-      border-radius: 15px;
-      display: none;
-      font-size: 1rem;
-      text-align: center;
-      width: 90%;
-      max-width: 600px;
+    .event-timer {
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 250, 200, 0.95);
+      padding: 10px 15px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color: #c26900;
+      border: 1px dashed #e2a849;
     }
     .celebrate {
-      position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -109,279 +100,257 @@
       border: 2px solid #ffd6a5;
       border-radius: 20px;
       box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-      z-index: 999;
       display: none;
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -60%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
     }
     .interaction-toggle {
-      margin-top: 20px;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
     }
     .interaction-panel {
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
       display: none;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 10px;
+      flex-direction: row;
+      gap: 10px;
     }
     .interaction-panel .button {
       background: #d2f4dc;
-      margin: 5px;
     }
-    .progress-bar {
-      height: 12px;
+    .album-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .album-screen h2 {
+      font-size: 1.8rem;
+      color: #8c6b4f;
+      margin-bottom: 20px;
+    }
+    .album-images {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .album-images img {
+      width: 120px;
+      height: 120px;
       border-radius: 10px;
-      background-color: #eee;
-      margin-bottom: 8px;
-      overflow: hidden;
-    }
-    .progress-bar-inner {
-      height: 100%;
-      transition: width 0.3s ease-in-out;
-    }
-    .hunger { background-color: #ffaeae; }
-    .affection { background-color: #9de0ad; }
-    .fade-out {
-      animation: fadeout 2s forwards;
-    }
-    @keyframes fadeout {
-      to { opacity: 0; display: none; }
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <h1>🐶 나만의 강아지 키우기</h1>
+  <h1>나만의 강아지 키우기 🐶</h1>
 
+  <audio id="bgm" autoplay loop>
+    <source src="https://dessa1995.github.io/dessa/bgm.mp3" type="audio/mp3">
+  </audio>
+
+  <!-- 시작 화면 -->
   <div id="start-screen" class="screen active">
-    <button class="button" onclick="goToBreedSelect()">게임 시작</button>
+    <button class="button" onclick="showBreedSelection()">게임 시작</button>
   </div>
 
+  <!-- 품종 선택 화면 -->
   <div id="breed-screen" class="screen">
-    <p>강아지 품종을 선택하세요:</p>
-    <button class="button" onclick="selectBreed('g')">골든 리트리버</button>
-    <button class="button" onclick="selectBreed('b')">비숑 프리제</button>
+    <h2>강아지 품종을 선택하세요</h2>
+    <button class="button" onclick="selectBreed('golden')">골든 리트리버</button>
+    <button class="button" onclick="selectBreed('bichon')">비숑 프리제</button>
   </div>
 
+  <!-- 이름 설정 화면 -->
   <div id="name-screen" class="screen">
-    <p>강아지 이름을 지어주세요:</p>
-    <input type="text" id="puppy-name" placeholder="예: 뭉치" />
-    <button class="button" onclick="startGame()">시작하기</button>
+    <h2>강아지 이름을 지어주세요</h2>
+    <input type="text" id="dog-name" placeholder="이름 입력" />
+    <button class="button" onclick="startGame()">시작!</button>
   </div>
 
+  <!-- 게임 화면 -->
   <div id="game-screen" class="screen">
     <div id="game-wrapper">
       <canvas id="gameCanvas" width="800" height="600"></canvas>
-      <div class="info-box" id="statusBar">
-        <div>나이: <span id="age">0</span>살</div>
-        <div>배고픔</div>
-        <div class="progress-bar"><div id="hungerBar" class="progress-bar-inner hunger" style="width: 50%"></div></div>
-        <div>친밀도</div>
-        <div class="progress-bar"><div id="affectionBar" class="progress-bar-inner affection" style="width: 50%"></div></div>
+
+      <div class="status-bar" id="status">
+        이름: <span id="status-name">?</span><br>
+        나이: <span id="status-age">0</span>세<br>
+        성장기: <span id="status-stage">신생아기</span><br>
+        친밀도: <span id="status-bond">50</span><br>
+        배고픔: <span id="status-hungry">50</span>
       </div>
-      <div class="event-box" id="eventBox"></div>
-      <div class="celebrate" id="celebrate">🎉 성장했어요!</div>
-      <div class="emotion-icon" id="emotion">😐</div>
-    </div>
 
-    <div class="interaction-toggle">
-      <button class="button" onclick="toggleInteractionPanel()">직접 상호작용 🔁</button>
-    </div>
-    <div class="interaction-panel" id="interactionPanel">
-      <button class="button" onclick="directInteraction('쓰다듬기')">쓰다듬기</button>
-      <button class="button" onclick="directInteraction('귀 냄새 맡기')">귀 냄새 맡기</button>
-      <button class="button" onclick="directInteraction('발 냄새 맡기')">발 냄새 맡기</button>
-      <button class="button" onclick="directInteraction('껴안기')">껴안기</button>
-    </div>
+      <div class="event-timer">
+        다음 이벤트까지: <span id="event-timer">5</span>초
+      </div>
 
-    <audio id="bgm" autoplay loop>
-      <source src="https://dessa1995.github.io/dessa/bgm.mp3" type="audio/mp3" />
-    </audio>
+      <div class="celebrate" id="celebrate-box">🎉 성장했어요! 🎉<br><button onclick="continueAfterCelebrate()">축하해</button></div>
+
+      <div class="interaction-toggle">
+        <button class="button" onclick="toggleInteraction()">상호작용 보기</button>
+      </div>
+
+      <div class="interaction-panel" id="interaction-panel">
+        <button class="button" onclick="interact('ear')">귀 냄새 맡기</button>
+        <button class="button" onclick="interact('paw')">발 냄새 맡기</button>
+        <button class="button" onclick="interact('hug')">껴안기</button>
+        <button class="button" onclick="interact('pet')">쓰다듬기</button>
+      </div>
+    </div>
   </div>
-  <div id="end-screen" class="screen">
-    <h2 id="end-message"></h2>
-    <div id="memory-album"></div>
-    <button class="button" onclick="restartGame()">다시 시작하기</button>
+  <!-- 추억 회상 앨범 화면 -->
+  <div id="album-screen" class="screen">
+    <h2 id="album-message"></h2>
+    <div id="album-images" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"></div>
+    <button class="button" onclick="location.reload()">다시 시작하기</button>
   </div>
 
   <script>
-    let puppyName = "";
-    let breed = "g";
+    let breed = '';
+    let name = '';
     let age = 0;
+    let bond = 50;
     let hunger = 50;
-    let affection = 50;
-    let emotion = "😐";
-    let isGrowing = false;
-    let hasEnded = false;
-    let memoryImages = [];
+    let stage = '신생아기';
+    let nextEventTime = 5;
+    let imageList = [];
+    let gameInterval, ageInterval;
+    let eventPaused = false;
+    let dogImage = new Image();
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const bgm = document.getElementById("bgm");
-    const statusBar = document.getElementById("statusBar");
-    const eventBox = document.getElementById("eventBox");
-    const ageSpan = document.getElementById("age");
-    const hungerBar = document.getElementById("hungerBar");
-    const affectionBar = document.getElementById("affectionBar");
-    const emotionIcon = document.getElementById("emotion");
-
-    function goToBreedSelect() {
-      showScreen("breed-screen");
+    function showBreedSelection() {
+      document.getElementById('start-screen').classList.remove('active');
+      document.getElementById('breed-screen').classList.add('active');
     }
 
-    function selectBreed(type) {
-      breed = type;
-      showScreen("name-screen");
+    function selectBreed(selected) {
+      breed = selected;
+      document.getElementById('breed-screen').classList.remove('active');
+      document.getElementById('name-screen').classList.add('active');
     }
 
     function startGame() {
-      puppyName = document.getElementById("puppy-name").value.trim() || "멍멍이";
-      showScreen("game-screen");
-      bgm.volume = 0.3;
-      bgm.play();
-      startTimers();
-      drawPuppy();
+      name = document.getElementById('dog-name').value || '멍멍이';
+      document.getElementById('name-screen').classList.remove('active');
+      document.getElementById('game-screen').classList.add('active');
+      document.getElementById('status-name').innerText = name;
+
+      dogImage.onload = () => {
+        drawGame();
+      };
+      setDogImage();
+      gameInterval = setInterval(updateEventTimer, 1000);
+      ageInterval = setInterval(increaseAge, 20000);
     }
 
-    function showScreen(id) {
-      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
+    function setDogImage() {
+      let index = (age < 2) ? 1 : (age < 6) ? 2 : (age < 10) ? 3 : 4;
+      const src = `https://dessa1995.github.io/dessa/${breed === 'golden' ? 'g' : 'b'}${index}.png`;
+      dogImage.src = src;
     }
 
-    function toggleInteractionPanel() {
-      const panel = document.getElementById("interactionPanel");
-      panel.style.display = (panel.style.display === "flex") ? "none" : "flex";
+    function drawGame() {
+      const ctx = document.getElementById('gameCanvas').getContext('2d');
+      ctx.clearRect(0, 0, 800, 600);
+      ctx.drawImage(dogImage, 250, 150, 300, 300);
     }
 
     function updateStatus() {
-      ageSpan.textContent = age;
-      hungerBar.style.width = hunger + "%";
-      affectionBar.style.width = affection + "%";
-      emotionIcon.textContent = emotion;
+      document.getElementById('status-age').innerText = age;
+      document.getElementById('status-stage').innerText = stage;
+      document.getElementById('status-bond').innerText = bond;
+      document.getElementById('status-hungry').innerText = hunger;
     }
 
-    function drawPuppy() {
-      let img = new Image();
-      let stage = "g1";
-      if (age < 2) stage = "g1";
-      else if (age < 6) stage = "g2";
-      else if (age < 10) stage = "g3";
-      else stage = "g4";
-      if (breed === "b") stage = stage.replace("g", "b");
-      img.src = `https://dessa1995.github.io/dessa/${stage}.png`;
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 200, 100, 400, 400);
-      };
-      memoryImages.push(stage);
+    function toggleInteraction() {
+      const panel = document.getElementById('interaction-panel');
+      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function directInteraction(action) {
-      affection = Math.min(100, affection + 5);
-      hunger = Math.max(0, hunger - 2);
-      emotion = "😍";
-      showEvent(`${action}을(를) 했어요!`);
-      updateStatus();
-      drawPuppy();
-    }
-
-    function showEvent(msg) {
-      eventBox.innerHTML = `<div class="event-message">${msg}</div>`;
-      setTimeout(() => {
-        eventBox.innerHTML = "";
-        emotion = "😐";
-        updateStatus();
-      }, 3000);
-    }
-
-    function startTimers() {
-      setInterval(() => {
-        if (hasEnded || isGrowing) return;
-        triggerRandomEvent();
-      }, 5000);
-
-      setInterval(() => {
-        if (hasEnded || isGrowing) return;
-        age++;
-        if ([2, 6, 10].includes(age)) {
-          triggerGrowth();
-        } else {
-          updateStatus();
-          drawPuppy();
-        }
-        if (age >= 11) {
-          setTimeout(checkEnd, 60000); // 1분 후 종료 확인
-        }
-      }, 20000);
-    }
-
-    function triggerGrowth() {
-      isGrowing = true;
-      document.getElementById("celebrate").style.display = "block";
-      emotion = "🎉";
-      drawPuppy();
-    }
-
-    function confirmGrowth() {
-      document.getElementById("celebrate").style.display = "none";
-      isGrowing = false;
-      updateStatus();
-    }
-    const randomEvents = [
-      "산책 나가고 싶어해요!",
-      "물그릇을 발로 찼어요!",
-      "햇살 좋은 날씨에 기분이 좋아요!",
-      "간식을 찾고 있어요!",
-      "장난감을 물고 흔들어요!",
-      "귀를 바닥에 비벼요!",
-      "잠이 솔솔 오는 눈빛이에요.",
-      "혼자 놀고 있어요.",
-      "꼬리를 흔들며 반겨요!",
-      "창밖을 바라보고 있어요.",
-      "배를 보여요! 귀여워요!",
-      "무언가를 몰래 물어왔어요!",
-      "주인의 발을 핥아요!",
-      "손을 달라고 해요!",
-      "주변을 킁킁거려요!",
-      "멍하니 한 곳을 바라봐요!",
-      "방석을 파헤쳐요!",
-      "콧소리를 내며 졸고 있어요!",
-      "주인을 올려다봐요!",
-      "기대어 앉아 있어요."
-    ];
-
-    function triggerRandomEvent() {
-      const event = randomEvents[Math.floor(Math.random() * randomEvents.length)];
-      affection = Math.min(100, affection + 2);
-      hunger = Math.max(0, hunger - 1);
-      emotion = "😊";
-      showEvent(event);
+    function interact(type) {
+      bond = Math.min(100, bond + 5);
+      hunger = Math.max(0, hunger - 5);
       updateStatus();
     }
 
-    function checkEnd() {
-      if (hasEnded) return;
-      hasEnded = true;
-      showScreen("end-screen");
-      const msg = `${puppyName}이가 예쁘고 멋지게 자랐어요!`;
-      document.getElementById("end-message").textContent = msg;
-      renderMemoryAlbum();
-      bgm.pause();
+    function continueAfterCelebrate() {
+      document.getElementById('celebrate-box').style.display = 'none';
+      eventPaused = false;
     }
 
-    function renderMemoryAlbum() {
-      const container = document.getElementById("memory-album");
-      container.innerHTML = "";
-      const seen = new Set();
-      memoryImages.forEach(stage => {
-        if (seen.has(stage)) return;
-        seen.add(stage);
-        const img = document.createElement("img");
-        img.src = `https://dessa1995.github.io/dessa/${stage}.png`;
-        img.style.width = "120px";
-        img.style.margin = "10px";
+    function increaseAge() {
+      if (eventPaused) return;
+      age++;
+      if (age === 2) stage = '청소년기';
+      else if (age === 6) stage = '성견기';
+      else if (age === 10) stage = '노령기';
+      updateStatus();
+      setDogImage();
+      drawGame();
+      showCelebrate();
+      imageList.push(dogImage.src);
+      if (age === 10) {
+        setTimeout(showAlbum, 60000); // 노령기 후 1분
+      }
+    }
+
+    function showCelebrate() {
+      document.getElementById('celebrate-box').style.display = 'block';
+      eventPaused = true;
+    }
+
+    function showAlbum() {
+      clearInterval(gameInterval);
+      clearInterval(ageInterval);
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('album-screen').classList.add('active');
+      document.getElementById('album-message').innerText = `${name}이가 예쁘고 멋지게 자랐어요!`;
+      const container = document.getElementById('album-images');
+      container.innerHTML = '';
+      imageList.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.width = '120px';
+        img.style.borderRadius = '10px';
         container.appendChild(img);
       });
     }
 
-    function restartGame() {
-      location.reload();
+    function updateEventTimer() {
+      if (eventPaused) return;
+      nextEventTime--;
+      document.getElementById('event-timer').innerText = nextEventTime;
+      if (nextEventTime <= 0) {
+        triggerRandomEvent();
+        nextEventTime = 5;
+      }
+    }
+
+    const events = [
+      '산책 가자고 졸라요!',
+      '간식을 달라고 해요!',
+      '장난감을 물어왔어요!',
+      '문 앞에서 꼬리를 흔들어요!',
+      '멍멍 짖어요!',
+      '배를 보여줘요!',
+      '꼬리를 흔들며 달려와요!',
+      '슬쩍 기대요!',
+      '킁킁 냄새 맡아요!',
+      '발을 살짝 올려요!'
+    ];
+
+    function triggerRandomEvent() {
+      const text = events[Math.floor(Math.random() * events.length)];
+      alert(`[이벤트] ${name}이가 ${text}`);
     }
   </script>
 </body>
